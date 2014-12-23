@@ -1,0 +1,202 @@
+<?php
+
+/**
+ * Long answer questions.
+ * @file
+ */
+
+/**
+ * Implements hook_install().
+ */
+function quizz_text_install() {
+  variable_set('node_options_long_answer', array('status'));
+  variable_set('node_options_short_answer', array('status'));
+}
+
+/**
+ * Implements hook_schema().
+ */
+function quizz_text_schema() {
+  // Properties for a question nodes go in here:
+  $schema['quiz_long_answer_properties'] = array(
+      'fields'      => array(
+          'qid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'vid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'rubric' => array('type' => 'text'),
+      ),
+      'primary key' => array('qid', 'vid'),
+  );
+
+  // User answers go in here.
+  $schema['quiz_long_answer_user_answers'] = array(
+      'fields'      => array(
+          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+          'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE),
+          'answer'                 => array('type' => 'text'),
+          'answer_feedback'        => array('type' => 'text'),
+          'answer_feedback_format' => array('type' => 'varchar', 'length' => 255),
+      ),
+      'primary key' => array('answer_id'),
+      'unique keys' => array(
+          'ids' => array('result_id', 'question_qid', 'question_vid'),
+      ),
+  );
+
+  // Properties for a question nodes go in here:
+  $schema['quiz_short_answer_properties'] = array(
+      'fields'      => array(
+          'qid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'vid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'maximum_score'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1,),
+          // One of (0) textfield and (1) textare
+          'text_entry_type'           => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+          // One of exact (0), case insensitive (1), regex (2), manual (3)
+          'correct_answer_evaluation' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+          // Correct answer
+          'correct_answer'            => array('type' => 'text'),
+          // Feedback if answer is correct
+          'feedback_correct'          => array('type' => 'text'),
+          // Feedback if answer is incorrect
+          'feedback_incorrect'        => array('type' => 'text'),
+      ),
+      'primary key' => array('qid', 'vid'),
+  );
+
+  // User answers go in here.
+  $schema['quiz_short_answer_user_answers'] = array(
+      'fields'      => array(
+          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,),
+          // This may be set to false if manual scoring is used.
+          'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE,),
+          'answer'                 => array('type' => 'text'),
+          'answer_feedback'        => array('type' => 'text'),
+          'answer_feedback_format' => array('type' => 'varchar', 'length' => 255,),
+      ),
+      'primary key' => array('answer_id'),
+      'unique keys' => array(
+          'ids' => array('result_id', 'question_qid', 'question_vid'),
+      ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Adding feedback field to table {quiz_long_answer_user_answers}
+ */
+function quizz_text_update_7401() {
+  if (!db_field_exists('quiz_long_answer_user_answers', 'answer_feedback')) {
+    $spec = array('type' => 'text', 'not null' => FALSE);
+    db_add_field('quiz_long_answer_user_answers', 'answer_feedback', $spec);
+  }
+
+  if (!db_field_exists('quiz_short_answer_user_answers', 'answer_feedback')) {
+    $spec = array('type' => 'text', 'not null' => FALSE);
+    db_add_field('quiz_short_answer_user_answers', 'answer_feedback', $spec);
+  }
+}
+
+/**
+ * Adding feedback format field to table {quiz_long_answer_user_answers}
+ */
+function quizz_text_update_7402() {
+  if (!db_field_exists('quiz_long_answer_user_answers', 'answer_feedback_format')) {
+    $spec = array('type' => 'varchar', 'length' => 255);
+    db_add_field('quiz_long_answer_user_answers', 'answer_feedback_format', $spec);
+  }
+
+  if (!db_field_exists('quiz_short_answer_user_answers', 'answer_feedback_format')) {
+    $spec = array('type' => 'varchar', 'length' => 255);
+    db_add_field('quiz_short_answer_user_answers', 'answer_feedback_format', $spec);
+  }
+}
+
+/**
+ * Implements hook_quiz_question_upgrade_schema_node_to_entity().
+ */
+function quizz_text_quiz_question_upgrade_schema_node_to_entity() {
+  if (db_table_exists('quiz_long_answer_node_properties')) {
+    $spec_1 = array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE);
+    $spec_2 = array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE);
+    db_rename_table('quiz_long_answer_node_properties', 'quiz_long_answer_properties');
+    db_change_field('quiz_long_answer_properties', 'nid', 'qid', $spec_1);
+    db_change_field('quiz_long_answer_user_answers', 'question_nid', 'question_qid', $spec_2);
+  }
+
+  if (db_table_exists('quiz_short_answer_node_properties')) {
+    $spec = array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE);
+    db_rename_table('quiz_short_answer_node_properties', 'quiz_short_answer_properties');
+    db_change_field('quiz_short_answer_properties', 'nid', 'qid', $spec);
+    db_change_field('quiz_short_answer_user_answers', 'question_nid', 'question_qid', $spec);
+  }
+}
+
+/**
+ * Implements hook_quiz_question_upgrade_pre_drop_temp_columns().
+ */
+function quizz_text_quiz_question_upgrade_pre_drop_temp_columns() {
+  // quiz_long_answer_properties
+  db_query("UPDATE {quiz_long_answer_properties} ap"
+    . " INNER JOIN {quiz_question_revision} revision ON ap.vid = revision.node_vid"
+    . " SET ap.qid = revision.qid, ap.vid = revision.vid"
+    . " WHERE 1");
+
+  // quiz_long_answer_user_answers
+  db_query("UPDATE {quiz_long_answer_user_answers} aua"
+    . " INNER JOIN {quiz_question_revision} qr ON aua.question_vid = qr.node_vid"
+    . " SET aua.question_qid = qr.qid, aua.question_vid = qr.vid"
+    . " WHERE 1");
+
+  // quiz_short_answer_properties
+  db_query(
+    "UPDATE {quiz_short_answer_properties} as ap"
+    . " INNER JOIN {quiz_question_revision} qr ON ap.vid = qr.node_vid"
+    . " SET ap.qid = qr.qid, ap.vid = qr.vid"
+    . " WHERE 1"
+  );
+
+  // quiz_short_answer_user_answers
+  db_query(
+    "UPDATE {quiz_short_answer_user_answers} as ua"
+    . " INNER JOIN {quiz_question_revision} qr ON ua.question_vid = qr.node_vid"
+    . " SET ua.question_qid = qr.qid, ua.question_vid = qr.vid"
+    . " WHERE 1"
+  );
+}
+
+/**
+ * Make sure update script from main module is run before all.
+ */
+function quizz_text_update_7600() {
+  require_once drupal_get_path('module', 'quizz_question') . '/quizz_question.install';
+  return quizz_question_update_7600();
+}
+
+/**
+ * Convert global configuration for questions to question type entity.
+ */
+function quizz_text_update_7601() {
+  foreach (quizz_question_get_types() as $question_type) {
+    if ('long_answer' === $question_type->handler) {
+      $question_type
+        ->setConfig('long_answer_default_max_score', variable_get('long_answer_default_max_score', 10))
+        ->save()
+      ;
+    }
+
+    if ('short_answer' === $question_type->handler) {
+      $question_type
+        ->setConfig('short_answer_default_max_score', variable_get('short_answer_default_max_score', 5))
+        ->save()
+      ;
+    }
+  }
+}
