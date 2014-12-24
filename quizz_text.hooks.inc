@@ -16,9 +16,9 @@ function quizz_text_permission() {
 }
 
 /**
- * Implements hook_quiz_question_info().
+ * Implements hook_quizz_question_info().
  */
-function quizz_text_quiz_question_info() {
+function quizz_text_quizz_question_info() {
   return array(
       'short_answer' => array(
           'name'              => t('Short answer question'),
