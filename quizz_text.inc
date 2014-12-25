@@ -25,7 +25,7 @@ function long_answer_view_unscored() {
  * @return string
  */
 function long_answer_edit_score($question_vid, $result_id) {
-  if (!$question = quiz_question_entity_load(NULL, $question_vid)) {
+  if (!$question = quizz_question_load(NULL, $question_vid)) {
     return drupal_not_found();
   }
 
