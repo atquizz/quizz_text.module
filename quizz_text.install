@@ -18,7 +18,7 @@ function quizz_text_install() {
  */
 function quizz_text_schema() {
   // Properties for a question nodes go in here:
-  $schema['quiz_long_answer_properties'] = array(
+  $schema['quizz_long_question'] = array(
       'fields'      => array(
           'qid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
           'vid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -28,7 +28,7 @@ function quizz_text_schema() {
   );
 
   // User answers go in here.
-  $schema['quiz_long_answer_user_answers'] = array(
+  $schema['quizz_text_long_answer'] = array(
       'fields'      => array(
           'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
           'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -46,8 +46,7 @@ function quizz_text_schema() {
       ),
   );
 
-  // Properties for a question nodes go in here:
-  $schema['quiz_short_answer_properties'] = array(
+  $schema['quizz_short_question'] = array(
       'fields'      => array(
           'qid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
           'vid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
@@ -67,7 +66,7 @@ function quizz_text_schema() {
   );
 
   // User answers go in here.
-  $schema['quiz_short_answer_user_answers'] = array(
+  $schema['quizz_short_answer'] = array(
       'fields'      => array(
           'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
           'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),

@@ -26,7 +26,7 @@ class LongAnswerQuestion extends QuestionHandler {
     }
 
     if ($is_new || $this->question->revision == 1) {
-      db_insert('quiz_long_answer_properties')
+      db_insert('quizz_long_question')
         ->fields(array(
             'qid'    => $this->question->qid,
             'vid'    => $this->question->vid,
@@ -35,7 +35,7 @@ class LongAnswerQuestion extends QuestionHandler {
         ->execute();
     }
     else {
-      db_update('quiz_long_answer_properties')
+      db_update('quizz_long_question')
         ->fields(array('rubric' => isset($this->question->rubric) ? $this->question->rubric : ''))
         ->condition('qid', $this->question->qid)
         ->condition('vid', $this->question->vid)
@@ -59,20 +59,20 @@ class LongAnswerQuestion extends QuestionHandler {
    */
   public function delete($only_this_version = FALSE) {
     if ($only_this_version) {
-      db_delete('quiz_long_answer_user_answers')
+      db_delete('quizz_text_long_answer')
         ->condition('question_qid', $this->question->qid)
         ->condition('question_vid', $this->question->vid)
         ->execute();
-      db_delete('quiz_long_answer_properties')
+      db_delete('quizz_long_question')
         ->condition('qid', $this->question->qid)
         ->condition('vid', $this->question->vid)
         ->execute();
     }
     else {
-      db_delete('quiz_long_answer_properties')
+      db_delete('quizz_long_question')
         ->condition('qid', $this->question->qid)
         ->execute();
-      db_delete('quiz_long_answer_user_answers')
+      db_delete('quizz_text_long_answer')
         ->condition('question_qid', $this->question->qid)
         ->execute();
     }
@@ -92,7 +92,7 @@ class LongAnswerQuestion extends QuestionHandler {
 
     $res_a = db_query(
       'SELECT rubric
-       FROM {quiz_long_answer_properties}
+       FROM {quizz_long_question}
        WHERE qid = :qid AND vid = :vid', array(
         ':qid' => $this->question->qid,
         ':vid' => $this->question->vid))->fetchAssoc();

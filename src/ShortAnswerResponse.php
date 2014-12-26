@@ -14,7 +14,7 @@ class ShortAnswerResponse extends ResponseHandler {
    * {@inheritdoc}
    * @var string
    */
-  protected $base_table = 'quiz_short_answer_user_answers';
+  protected $base_table = 'quizz_short_answer';
 
   /** @var bool */
   protected $allow_feedback = TRUE;
@@ -43,7 +43,7 @@ class ShortAnswerResponse extends ResponseHandler {
   }
 
   public function onLoad(Answer $answer) {
-    $sql = 'SELECT input.* FROM {quiz_short_answer_user_answers} input WHERE question_vid = :qvid AND result_id = :rid';
+    $sql = 'SELECT input.* FROM {quizz_short_answer} input WHERE question_vid = :qvid AND result_id = :rid';
     $conds = array(':qvid' => $answer->question_vid, ':rid' => $answer->result_id);
     if ($input = db_query($sql, $conds)->fetchObject()) {
       $answer->setInput($input);
@@ -59,7 +59,7 @@ class ShortAnswerResponse extends ResponseHandler {
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
 
-    $query = db_select('quiz_short_answer_user_answers', 'answer');
+    $query = db_select('quizz_short_answer', 'answer');
     $query->fields('answer', array('result_id', 'question_qid', 'question_vid', 'answer_feedback', 'answer_feedback_format'));
     $query->fields('question_revision', array('title'));
     $query->fields('qr', array('time_end', 'time_start', 'uid'));
@@ -97,7 +97,7 @@ class ShortAnswerResponse extends ResponseHandler {
   public static function fetchUnscoredAnswersByQuestion($question_qid, $question_vid, $count = 50, $offset = 0) {
     return db_query(
         'SELECT result_id
-          FROM {quiz_short_answer_user_answers}
+          FROM {quizz_short_answer}
           WHERE is_evaluated = :is_evaluated
             AND question_qid = :question_qid
             AND question_vid = :question_vid', array(
@@ -113,7 +113,7 @@ class ShortAnswerResponse extends ResponseHandler {
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     $this->is_evaluated = (int) ($this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL);
-    $this->answer_id = db_insert('quiz_short_answer_user_answers')
+    $this->answer_id = db_insert('quizz_short_answer')
       ->fields(array(
           'answer'       => $this->answer,
           'question_qid' => $this->question->qid,
@@ -131,7 +131,7 @@ class ShortAnswerResponse extends ResponseHandler {
   public function score() {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
-      $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
+      $score = db_query('SELECT score FROM {quizz_short_answer} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
       if (!$score) {
         $score = 0;
       }

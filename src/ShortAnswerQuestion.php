@@ -32,7 +32,7 @@ class ShortAnswerQuestion extends QuestionHandler {
    */
   public function onSave($is_new = FALSE) {
     if ($is_new || $this->question->revision == 1) {
-      db_insert('quiz_short_answer_properties')
+      db_insert('quizz_short_question')
         ->fields(array(
             'qid'                       => $this->question->qid,
             'vid'                       => $this->question->vid,
@@ -42,7 +42,7 @@ class ShortAnswerQuestion extends QuestionHandler {
         ->execute();
     }
     else {
-      db_update('quiz_short_answer_properties')
+      db_update('quizz_short_question')
         ->fields(array(
             'correct_answer'            => $this->question->correct_answer,
             'correct_answer_evaluation' => $this->question->correct_answer_evaluation,
@@ -67,10 +67,10 @@ class ShortAnswerQuestion extends QuestionHandler {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
-    $delete_ans = db_delete('quiz_short_answer_user_answers');
+    $delete_ans = db_delete('quizz_short_answer');
     $delete_ans->condition('question_qid', $this->question->qid);
 
-    $delete_node = db_delete('quiz_short_answer_properties');
+    $delete_node = db_delete('quizz_short_question');
     $delete_node->condition('qid', $this->question->qid);
 
     if ($only_this_version) {
@@ -90,7 +90,7 @@ class ShortAnswerQuestion extends QuestionHandler {
       return $this->properties;
     }
     $props = parent::load();
-    $res_a = db_query('SELECT correct_answer, correct_answer_evaluation FROM {quiz_short_answer_properties}
+    $res_a = db_query('SELECT correct_answer, correct_answer_evaluation FROM {quizz_short_question}
       WHERE qid = :qid AND vid = :vid', array(':qid' => $this->question->qid, ':vid' => $this->question->vid))->fetchAssoc();
     $this->properties = (is_array($res_a)) ? array_merge($props, $res_a) : $props;
     return $this->properties;

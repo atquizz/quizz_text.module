@@ -15,7 +15,7 @@ class LongAnswerResponse extends ResponseHandler {
    * {@inheritdoc}
    * @var string
    */
-  protected $base_table = 'quiz_long_answer_user_answers';
+  protected $base_table = 'quizz_text_long_answer';
 
   /** @var int */
   protected $answer_id = 0;
@@ -37,7 +37,7 @@ class LongAnswerResponse extends ResponseHandler {
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
 
-    $query = db_select('quiz_long_answer_user_answers', 'answer');
+    $query = db_select('quizz_text_long_answer', 'answer');
     $query->fields('answer', array('result_id', 'question_qid', 'question_vid', 'answer_feedback', 'answer_feedback_format'));
     $query->fields('question_revision', array('title'));
     $query->fields('qr', array('time_end', 'time_start', 'uid'));
@@ -79,7 +79,7 @@ class LongAnswerResponse extends ResponseHandler {
    *  Indexed array of result IDs that need to be scored.
    */
   public static function fetchUnscoredAnswersByQuestion($qid, $vid, $count = 50, $offset = 0) {
-    $results = db_query('SELECT result_id FROM {quiz_long_answer_user_answers}
+    $results = db_query('SELECT result_id FROM {quizz_text_long_answer}
       WHERE is_evaluated = :is_evaluated
       AND question_qid = :question_qid
       AND question_vid = :question_vid', array(
@@ -119,7 +119,7 @@ class LongAnswerResponse extends ResponseHandler {
   public function onLoad(Answer $answer) {
     // Question has been answered allready. We fetch the answer data from
     // the database.
-    $input = db_select('quiz_long_answer_user_answers', 'input')
+    $input = db_select('quizz_text_long_answer', 'input')
       ->fields('input')
       ->condition('question_vid', $answer->question_vid)
       ->condition('result_id', $answer->result_id)
@@ -134,7 +134,7 @@ class LongAnswerResponse extends ResponseHandler {
    * {@inheritdoc}
    */
   public function save() {
-    db_merge('quiz_long_answer_user_answers')
+    db_merge('quizz_text_long_answer')
       ->key(array(
           'question_qid' => $this->question->qid,
           'question_vid' => $this->question->vid,
@@ -151,7 +151,7 @@ class LongAnswerResponse extends ResponseHandler {
   public function score() {
     return (int) db_query(
         'SELECT score
-          FROM {quiz_long_answer_user_answers}
+          FROM {quizz_text_long_answer}
           WHERE result_id = :result_id AND question_vid = :question_vid', array(
           ':result_id'    => $this->result_id,
           ':question_vid' => $this->question->vid
