@@ -40,22 +40,22 @@ function quizz_text_quizz_question_info() {
 /**
  * Implements hook_quiz_question_config().
  */
-function short_answer_quiz_question_config(QuestionType $question_type) {
+function quizz_text_short_answer_quiz_question_config(QuestionType $question_type) {
   $form['short_answer_default_max_score'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Default max score'),
       '#description'   => t('Choose the default maximum score for a short answer question.'),
       '#default_value' => $question_type->getConfig('short_answer_default_max_score', 5),
   );
-  $form['#validate'][] = 'short_answer_config_validate';
+  $form['#validate'][] = 'quizz_text_short_answer_config_validate';
   return $form;
 }
 
 /**
  * Implements hook_quiz_question_config().
  */
-function long_answer_quiz_question_config(QuestionType $question_type) {
-  $form = array('#validate' => array('long_answer_config_validate'));
+function quizz_text_long_answer_quiz_question_config(QuestionType $question_type) {
+  $form = array('#validate' => array('quizz_text_long_answer_config_validate'));
   $form['long_answer_default_max_score'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Default max score'),
@@ -70,17 +70,17 @@ function long_answer_quiz_question_config(QuestionType $question_type) {
  */
 function quizz_text_theme() {
   return array(
-      'long_answer_view_unscored'  => array(
+      'quizz_text_long_answer_view_unscored' => array(
           'variables' => array('unscored' => array()),
           'path'      => drupal_get_path('module', 'quizz_text') . '/theme',
           'file'      => 'quizz_text.theme.inc',
       ),
-      'long_answer_response_form'  => array(
+      'long_answer_response_form'            => array(
           'render element' => 'form',
           'path'           => drupal_get_path('module', 'quizz_text') . '/theme',
           'file'           => 'quizz_text.theme.inc',
       ),
-      'long_answer_answering_form' => array(
+      'long_answer_answering_form'           => array(
           'render element' => 'form',
           'path'           => drupal_get_path('module', 'quizz_text') . '/theme',
           'template'       => 'long-answer-answering-form',
@@ -95,7 +95,7 @@ function quizz_text_menu() {
   $items['admin/quiz/reports/score-short-answer'] = array(
       'title'            => 'Score short answer questions',
       'description'      => 'Score the answers from quizzes that use short answer questions.',
-      'page callback'    => 'short_answer_view_unscored',
+      'page callback'    => 'quizz_text_short_answer_view_unscored',
       'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
       'access callback'  => 'quizz_access_multi_or',
       'type'             => MENU_NORMAL_ITEM,
@@ -108,7 +108,7 @@ function quizz_text_menu() {
       'description'      => 'Score a response to a short answer question.',
       'access arguments' => array(4, 5),
       'access callback'  => 'quizz_question_access_to_score',
-      'page callback'    => 'short_answer_edit_score',
+      'page callback'    => 'quizz_text_short_answer_edit_score',
       'page arguments'   => array(4, 5),
       'type'             => MENU_NORMAL_ITEM,
       'file'             => 'short_answer.admin.inc'
@@ -117,7 +117,7 @@ function quizz_text_menu() {
   $items['admin/quiz/reports/score-long-answer'] = array(
       'title'            => 'Score long answer questions',
       'description'      => 'Score the answers from quizzes that use long answer questions.',
-      'page callback'    => 'long_answer_view_unscored',
+      'page callback'    => 'quizz_text_long_answer_view_unscored',
       'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
       'access callback'  => 'quizz_access_multi_or',
       'type'             => MENU_NORMAL_ITEM,
@@ -130,7 +130,7 @@ function quizz_text_menu() {
       'description'      => 'Score a response to a long answer question.',
       'access arguments' => array(4, 5),
       'access callback'  => 'quizz_question_access_to_score',
-      'page callback'    => 'long_answer_edit_score',
+      'page callback'    => 'quizz_text_long_answer_edit_score',
       'page arguments'   => array(4, 5),
       'type'             => MENU_NORMAL_ITEM,
       'file'             => 'quizz_text.admin.inc'
@@ -142,25 +142,25 @@ function quizz_text_menu() {
 /**
  * Implements hook_theme().
  */
-function short_answer_theme($existing, $type, $theme, $path) {
+function quizz_text_short_answer_theme($existing, $type, $theme, $path) {
   $module_path = drupal_get_path('module', 'quizz_text');
   return array(
-      'short_answer_view_unscored'  => array(
+      'quizz_text_short_answer_view_unscored' => array(
           'variables' => array('unscored' => array()),
           'path'      => $module_path . '/theme',
           'file'      => 'quizz_text.theme.inc',
       ),
-      'short_answer_response_form'  => array(
+      'quizz_text_short_answer_response_form' => array(
           'render element' => 'form',
           'path'           => $module_path . '/theme',
           'file'           => 'quizz_text.theme.inc',
       ),
-      'short_answer_user_answer'    => array(
+      'short_answer_user_answer'              => array(
           'variables' => array('answer' => NULL, 'correct' => NULL),
           'path'      => $module_path . '/theme',
           'file'      => 'quizz_text.theme.inc',
       ),
-      'short_answer_answering_form' => array(
+      'short_answer_answering_form'           => array(
           'render element' => 'form',
           'path'           => $module_path . '/theme',
           'template'       => 'short-answer-answering-form',

@@ -1,15 +1,17 @@
 <?php
 
 use Drupal\quizz_question\Entity\Question;
+use Drupal\quizz_text\LongAnswerResponse;
+use Drupal\quizz_text\ShortAnswerResponse;
 
 /**
  * Generate a view of all unscored answer questions.
  *
- * @see theme_long_answer_view_unscored()
+ * @see theme_quizz_text_long_answer_view_unscored()
  */
-function long_answer_view_unscored() {
+function quizz_text_long_answer_view_unscored() {
   $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
-  return theme('long_answer_view_unscored', array('unscored' => $unscored));
+  return theme('quizz_text_long_answer_view_unscored', array('unscored' => $unscored));
 }
 
 /**
@@ -21,16 +23,16 @@ function long_answer_view_unscored() {
  * @param int $result_id
  * @return string
  */
-function long_answer_edit_score($question_vid, $result_id) {
+function quizz_text_long_answer_edit_score($question_vid, $result_id) {
   if (!$question = quizz_question_load(NULL, $question_vid)) {
     return drupal_not_found();
   }
 
   if ('long_answer' !== $question->getQuestionType()->handler) {
-    throw new \RuntimeException('Unexpected question type: ' . $question->getQuestionType()->handler);
+    throw new RuntimeException('Unexpected question type: ' . $question->getQuestionType()->handler);
   }
 
-  if (!$answer = (object) long_answer_get_answer($question->qid, $question->vid, $result_id)) {
+  if (!$answer = (object) quizz_text_long_answer_get_answer($question->qid, $question->vid, $result_id)) {
     return drupal_not_found();
   }
 
@@ -40,7 +42,7 @@ function long_answer_edit_score($question_vid, $result_id) {
   }
 
   drupal_set_title(t('Score answer to "@title"', array('@title' => $question->title)), PASS_THROUGH);
-  return drupal_get_form('long_answer_score_form', $question, $answer);
+  return drupal_get_form('quizz_text_long_answer_score_form', $question, $answer);
 }
 
 /**
@@ -52,7 +54,7 @@ function long_answer_edit_score($question_vid, $result_id) {
  * @return
  *  The form (as a FAPI array).
  */
-function long_answer_score_form($form, $form_state, $question, $answer) {
+function quizz_text_long_answer_score_form($form, $form_state, $question, $answer) {
   if (!$question || $question->type != 'long_answer' || !$answer) {
     drupal_not_found();
     return;
@@ -132,7 +134,7 @@ function long_answer_score_form($form, $form_state, $question, $answer) {
 /**
  * Validates the long answer score form
  */
-function long_answer_score_form_validate($form, $form_state) {
+function quizz_text_long_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
   $max = (int) $form_state['values']['rel_max_score'];
   $given = $form_state['values']['score'];
@@ -145,10 +147,10 @@ function long_answer_score_form_validate($form, $form_state) {
 /**
  * Submit handler for the long answer score form
  */
-function long_answer_score_form_submit($form, &$form_state) {
+function quizz_text_long_answer_score_form_submit($form, &$form_state) {
   $result = quizz_result_load($form_state['values']['result_id']);
 
-  $return = long_answer_score_an_answer(array(
+  $return = quizz_text_long_answer_score_an_answer(array(
       'quiz'            => $result->getQuiz(),
       'qid'             => $form_state['values']['question_qid'],
       'vid'             => $form_state['values']['question_vid'],
@@ -170,11 +172,11 @@ function long_answer_score_form_submit($form, &$form_state) {
 /**
  * Generate a view of all unscored short_answer questions.
  *
- * @see theme_short_answer_view_unscored()
+ * @see theme_quizz_text_short_answer_view_unscored()
  */
-function short_answer_view_unscored() {
+function quizz_text_short_answer_view_unscored() {
   $unscored = ShortAnswerResponse::fetchAllUnscoredAnswers();
-  return theme('short_answer_view_unscored', array('unscored' => $unscored));
+  return theme('quizz_text_short_answer_view_unscored', array('unscored' => $unscored));
 }
 
 /**
@@ -186,7 +188,7 @@ function short_answer_view_unscored() {
  * @param int $result_id
  * @return string
  */
-function short_answer_edit_score($question_vid, $result_id) {
+function quizz_text_short_answer_edit_score($question_vid, $result_id) {
   if (!$question = quizz_question_load(NULL, $question_vid)) {
     return drupal_not_found();
   }
@@ -195,7 +197,7 @@ function short_answer_edit_score($question_vid, $result_id) {
     throw new RuntimeException('Unexpected question type: ' . $question->getQuestionType()->handler);
   }
 
-  if (!$answer = (object) short_answer_get_answer($question->qid, $question->vid, $result_id)) {
+  if (!$answer = (object) quizz_text_short_answer_get_answer($question->qid, $question->vid, $result_id)) {
     return drupal_not_found();
   }
 
@@ -205,7 +207,7 @@ function short_answer_edit_score($question_vid, $result_id) {
   }
 
   drupal_set_title(t('Score answer to "@title"', array('@title' => $question->title)), PASS_THROUGH);
-  return drupal_get_form('short_answer_score_form', $question, $answer);
+  return drupal_get_form('quizz_text_short_answer_score_form', $question, $answer);
 }
 
 /**
@@ -217,7 +219,7 @@ function short_answer_edit_score($question_vid, $result_id) {
  * @return
  *  The form (as a FAPI array).
  */
-function short_answer_score_form($form, $context, $question, $answer) {
+function quizz_text_short_answer_score_form($form, $context, $question, $answer) {
   if (!$question || $question->type != 'short_answer' || !$answer) {
     drupal_not_found();
     return;
@@ -287,7 +289,7 @@ function short_answer_score_form($form, $context, $question, $answer) {
 /**
  * Validate the score form
  */
-function short_answer_score_form_validate($form, $form_state) {
+function quizz_text_short_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
   $max = (int) $form_state['values']['rel_max_score'];
   $given = (int) $form_state['values']['score'];
@@ -301,10 +303,10 @@ function short_answer_score_form_validate($form, $form_state) {
 /**
  * Submit the score form
  */
-function short_answer_score_form_submit($form, &$form_state) {
+function quizz_text_short_answer_score_form_submit($form, &$form_state) {
   $result = quizz_result_load($form_state['values']['result_id']);
 
-  $return = short_answer_score_an_answer($result, array(
+  $return = quizz_text_short_answer_score_an_answer($result, array(
       'quiz'            => $result->getQuiz(),
       'vid'             => $form_state['values']['question_vid'],
       'score'           => $form_state['values']['score'],

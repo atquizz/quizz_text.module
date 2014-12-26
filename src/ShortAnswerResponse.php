@@ -167,7 +167,7 @@ class ShortAnswerResponse extends ResponseHandler {
    * {@inheritdoc}
    */
   public function getReportFormSubmit() {
-    return 'short_answer_report_submit';
+    return 'quizz_text_short_answer_report_submit';
   }
 
   /**

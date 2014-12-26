@@ -6,7 +6,7 @@
  * @param $unscored
  *  An array of objects, each with the question_qid, question_vid, and result_id of an unscored question.
  */
-function theme_long_answer_view_unscored($variables) {
+function theme_quizz_text_long_answer_view_unscored($variables) {
   $unscored = $variables['unscored'];
   $output = '';
   $header = array(t('Question'), t('Finished'), t('Action'));
@@ -41,7 +41,7 @@ function theme_long_answer_response_form($variables) {
  * @param $unscored
  *  An array of objects with information about the unscored questions
  */
-function theme_short_answer_view_unscored($variables) {
+function theme_quizz_text_short_answer_view_unscored($variables) {
   $unscored = $variables['unscored'];
   $output = '';
   $header = array(t('Question'), t('Time Finished'), t('Action'));
@@ -84,7 +84,7 @@ function theme_short_answer_user_answer($variables) {
  * @param $form
  *  The response form
  */
-function theme_short_answer_response_form($variables) {
+function theme_quizz_text_short_answer_response_form($variables) {
   $form = $variables['form'];
   return drupal_render_children($form);
 }
