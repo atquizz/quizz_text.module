@@ -75,7 +75,7 @@ function quizz_text_theme() {
           'path'      => drupal_get_path('module', 'quizz_text') . '/theme',
           'file'      => 'quizz_text.theme.inc',
       ),
-      'long_answer_response_form'            => array(
+      'quizz_text_long_answer_response_form' => array(
           'render element' => 'form',
           'path'           => drupal_get_path('module', 'quizz_text') . '/theme',
           'file'           => 'quizz_text.theme.inc',
@@ -155,7 +155,7 @@ function quizz_text_short_answer_theme($existing, $type, $theme, $path) {
           'path'           => $module_path . '/theme',
           'file'           => 'quizz_text.theme.inc',
       ),
-      'short_answer_user_answer'              => array(
+      'quizz_text_short_answer_user_answer'   => array(
           'variables' => array('answer' => NULL, 'correct' => NULL),
           'path'      => $module_path . '/theme',
           'file'      => 'quizz_text.theme.inc',

@@ -181,7 +181,7 @@ class LongAnswerResponse extends ResponseHandler {
    * {@inheritdoc}
    */
   public function getReportFormSubmit() {
-    return 'long_answer_report_submit';
+    return 'quizz_text_long_answer_report_submit';
   }
 
   /**
