@@ -61,7 +61,7 @@ function quizz_text_long_answer_score_an_answer(Result $result, $values, $update
     ->execute();
   if ($changed > 0) {
     // Second, we update the main quiz answers table
-    // What do we do about the quiz_results_answers table? It assumes strict
+    // What do we do about the quiz_answer_entity table? It assumes strict
     // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
     $max = db_query('SELECT max_score FROM {quiz_question_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
     if ($max <= 0) {
@@ -73,7 +73,8 @@ function quizz_text_long_answer_score_an_answer(Result $result, $values, $update
       $points_awarded = $score;
     }
 
-    db_update('quiz_results_answers')
+    // @TODO: Use entity API.
+    db_update('quiz_answer_entity')
       ->fields(array(
           'points_awarded' => $points_awarded,
           'is_correct'     => $is_correct,
@@ -245,7 +246,8 @@ function quizz_text_short_answer_score_an_answer(Result $result, $values, $updat
       $points_awarded = $score;
     }
 
-    db_update('quiz_results_answers')
+    // @TODO: Use entity API.
+    db_update('quiz_answer_entity')
       ->fields(array(
           'points_awarded' => $points_awarded,
           'is_correct'     => $is_correct,
