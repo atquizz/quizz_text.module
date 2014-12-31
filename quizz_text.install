@@ -17,8 +17,8 @@ function quizz_text_install() {
  * Implements hook_schema().
  */
 function quizz_text_schema() {
-  // Properties for a question nodes go in here:
   $schema['quizz_long_question'] = array(
+      'description' => 'Properties for a question entities go in here.',
       'fields'      => array(
           'qid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
           'vid'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -27,8 +27,8 @@ function quizz_text_schema() {
       'primary key' => array('qid', 'vid'),
   );
 
-  // User answers go in here.
   $schema['quizz_text_long_answer'] = array(
+      'description' => 'User answers go in here.',
       'fields'      => array(
           'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
           'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -48,33 +48,27 @@ function quizz_text_schema() {
 
   $schema['quizz_short_question'] = array(
       'fields'      => array(
-          'qid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'vid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'maximum_score'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1,),
-          // One of (0) textfield and (1) textare
+          'qid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'vid'                       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'maximum_score'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1, 'description' => 'One of (0) textfield and (1) textare.'),
           'text_entry_type'           => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-          // One of exact (0), case insensitive (1), regex (2), manual (3)
-          'correct_answer_evaluation' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-          // Correct answer
-          'correct_answer'            => array('type' => 'text'),
-          // Feedback if answer is correct
-          'feedback_correct'          => array('type' => 'text'),
-          // Feedback if answer is incorrect
-          'feedback_incorrect'        => array('type' => 'text'),
+          'correct_answer_evaluation' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'One of exact (0), case insensitive (1), regex (2), manual (3)'),
+          'correct_answer'            => array('type' => 'text', 'description' => 'Correct answer'),
+          'feedback_correct'          => array('type' => 'text', 'description' => 'Feedback if answer is correct'),
+          'feedback_incorrect'        => array('type' => 'text', 'description' => 'Feedback if answer is incorrect'),
       ),
       'primary key' => array('qid', 'vid'),
   );
 
-  // User answers go in here.
   $schema['quizz_short_answer'] = array(
+      'description' => 'User answers go in here.',
       'fields'      => array(
-          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-          'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,),
-          // This may be set to false if manual scoring is used.
-          'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE,),
+          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+          'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE, 'description' => 'This may be set to false if manual scoring is used.'),
           'answer'                 => array('type' => 'text'),
           'answer_feedback'        => array('type' => 'text'),
           'answer_feedback_format' => array('type' => 'varchar', 'length' => 255,),
