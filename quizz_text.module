@@ -37,6 +37,9 @@ function quizz_text_long_answer_config_validate($form, $form_state) {
 function quizz_text_long_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
   extract($values);
 
+  $question = quizz_question_load(NULL, $vid);
+  $answer = $result->loadAnswerByQuestion($question);
+
   // Quiz scoring information is spread out across three tables:
   // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
   // 2. The Quiz moduleretains a limited amount of scoring information.
@@ -48,16 +51,14 @@ function quizz_text_long_answer_score_an_answer(Result $result, $values, $update
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_revision} WHERE qid = :qid AND vid = :vid', array(':qid' => $qid, ':vid' => $vid))->FetchField();
   $quiz_max_score = db_query('SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND question_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
 
-  $changed = db_update('quizz_text_long_answer')
+  $changed = db_update('quizz_long_answer')
     ->fields(array(
         'score'                  => $score * $question_max_score / $quiz_max_score,
         'is_evaluated'           => 1,
         'answer_feedback'        => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
         'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
-    ->condition('question_qid', $qid)
-    ->condition('question_vid', $vid)
-    ->condition('result_id', $result->result_id)
+    ->condition('answer_id', $answer->id)
     ->execute();
   if ($changed > 0) {
     // Second, we update the main quiz answers table
@@ -90,82 +91,6 @@ function quizz_text_long_answer_score_an_answer(Result $result, $values, $update
   }
 
   return $changed;
-}
-
-/**
- * Get the answer for a question.
- *
- * This stores a score for a long answer question and marks that question as having been evaluated.
- * @param int $question_qid
- * @param int $question_vid
- * @param int $result_id
- * @return array
- *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
- *  <code>
- *  answer_id; // The answer ID
- *  answer; // The full text of the answer
- *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
- *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
- *  question_vid
- *  question_qid
- *  result_id
- *  </code>
- */
-function quizz_text_long_answer_get_answer($question_qid, $question_vid, $result_id) {
-  $result = db_query('
-    SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_qid, la.result_id, la.answer_feedback, la.answer_feedback_format, rel.max_score AS rel_max_score
-    FROM {quizz_text_long_answer} la
-    JOIN {quiz_results} qnr ON (la.result_id = qnr.result_id)
-    JOIN {quiz_relationship} rel ON (qnr.quiz_vid = rel.quiz_vid AND rel.question_vid = la.question_vid)
-    WHERE question_qid = :question_id AND question_vid = :question_vid AND la.result_id = :rid', array(
-      ':question_id'  => $question_qid,
-      ':question_vid' => $question_vid,
-      ':rid'          => $result_id))->fetchAssoc();
-  return $result ? $result : FALSE;
-}
-
-/**
- * Given a quiz, return a list of all the unscored answers.
- *
- * @param int $question_qid
- * @param int $question_vid
- * @param $count
- *  Number of items to return (default: 50).
- * @param $offset
- *  Where in the results we should start (default: 0).
- *
- * @return
- *  Indexed array of result IDs that need to be scored.
- */
-function quizz_text_long_answer_get_unscored_answers_by_question($question_qid, $question_vid, $count = 50, $offset = 0) {
-  $results = db_query('SELECT result_id FROM {quizz_text_long_answer}
-    WHERE is_evaluated = :is_evaluated AND question_qid = :question_qid AND question_vid = :question_vid', array(
-      ':is_evaluated' => 0,
-      ':question_qid' => $question_qid,
-      ':question_vid' => $question_vid
-  ));
-
-  $unscored = array();
-  foreach ($results as $result) {
-    $unscored[] = $result->result_id;
-  }
-  return $unscored;
-}
-
-/**
- * Get all quiz scores that have not yet been evaluated.
- *
- * @param $count
- *  Number of items to return (default: 50).
- * @param $offset
- *  Where in the results we should start (default: 0).
- *
- * @return
- *  Array of objects describing unanswered questions. Each object will have result_id, question_qid, and question_vid.
- */
-function quizz_text_long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
-  $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
-  return $unscored;
 }
 
 /**
@@ -206,12 +131,12 @@ function quizz_text_short_answer_config_validate($form, $form_state) {
 function quizz_text_short_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
   extract($values);
 
+  $question = quizz_question_load(NULL, $vid);
+  $answer = $result->loadAnswerByQuestion($question);
+
   // When we set the score we make sure that the max score in the quiz the
   // question belongs to is considered
-  $question_max_score = db_query(
-    'SELECT max_score '
-    . ' FROM {quiz_question_revision} '
-    . ' WHERE vid = :vid', array(':vid' => $vid))->FetchField();
+  $question_max_score = $question->max_score;
 
   $quiz_max_score = db_query(
     'SELECT max_score '
@@ -227,40 +152,26 @@ function quizz_text_short_answer_score_an_answer(Result $result, $values, $updat
         'answer_feedback'        => empty($answer_feedback['value']) ? '' : $answer_feedback['value'],
         'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
-    ->condition('question_vid', $vid)
-    ->condition('result_id', $result->result_id)
+    ->condition('answer_id', $answer->id)
     ->execute();
 
   // Now the short answer user data has been updated. We also need to update the
   // data in the quiz tables
   if ($changed > 0) {
-    $max = db_query('SELECT max_score'
-      . ' FROM {quiz_question_revision} '
-      . ' WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-    if ($max <= 0) {
-      $is_correct = 0;
-      $points_awarded = 0;
-    }
-    else {
-      $is_correct = ($score / $max > 0.5) ? 1 : 0;
+    $is_correct = $points_awarded = 0;
+    if ($question_max_score > 0) {
+      $is_correct = ($score / $question_max_score > 0.5) ? 1 : 0;
       $points_awarded = $score;
     }
 
-    // @TODO: Use entity API.
-    db_update('quiz_answer_entity')
-      ->fields(array(
-          'points_awarded' => $points_awarded,
-          'is_correct'     => $is_correct,
-      ))
-      ->condition('question_vid', $vid)
-      ->condition('result_id', $result->result_id)
-      ->execute();
+    $answer->points_awarded = $points_awarded;
+    $answer->is_correct = $is_correct;
+    $answer->save();
 
     // Third, we update the main quiz results table
-    if ($update_total) {
-      quizz_result_controller()->getScoreIO()->updateTotalScore($result);
-    }
+    $update_total && quizz_result_controller()->getScoreIO()->updateTotalScore($result);
   }
+
   return $changed;
 }
 

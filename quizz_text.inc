@@ -8,47 +8,6 @@ use Drupal\quizz_text\LongAnswerResponse;
  */
 
 /**
- * Generate a view of all unscored answer questions.
- *
- * @see theme_quizz_text_long_answer_view_unscored()
- */
-function quizz_text_long_answer_view_unscored() {
-  $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
-  return theme('quizz_text_long_answer_view_unscored', array('unscored' => $unscored));
-}
-
-/**
- * Page handler for displaying a scoring form.
- * This function is called directly from the menu router. It generates a form for
- * scoring a quiz.
- *
- * @param int $question_vid
- * @param int $result_id
- * @return string
- */
-function quizz_text_long_answer_edit_score($question_vid, $result_id) {
-  if (!$question = quizz_question_load(NULL, $question_vid)) {
-    return drupal_not_found();
-  }
-
-  if ('long_answer' !== $question->getQuestionType()->handler) {
-    throw new RuntimeException('Unexpected question type: ' . $question->getQuestionType()->handler);
-  }
-
-  if (!$answer = (object) quizz_text_long_answer_get_answer($question->qid, $question->vid, $result_id)) {
-    return drupal_not_found();
-  }
-
-  $answer->rel_score = 0;
-  if ($question->max_score > 0) {
-    $answer->rel_score = round($answer->score * $answer->rel_max_score / $question->max_score);
-  }
-
-  drupal_set_title(t('Score answer to "@title"', array('@title' => $question->title)), PASS_THROUGH);
-  return drupal_get_form('quizz_text_long_answer_score_form', $question, $answer);
-}
-
-/**
  * Build a form for scoring long-answer questions.
  *
  * @param \Drupal\quizz_question\Entity\Question $question

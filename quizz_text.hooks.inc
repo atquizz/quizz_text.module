@@ -99,7 +99,7 @@ function quizz_text_menu() {
       'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
       'access callback'  => 'quizz_access_multi_or',
       'type'             => MENU_NORMAL_ITEM,
-      'file'             => 'short_answer.admin.inc',
+      'file'             => 'quizz_text.admin.inc',
   );
 
   // Pass vid and rid to this path.
@@ -111,7 +111,7 @@ function quizz_text_menu() {
       'page callback'    => 'quizz_text_short_answer_edit_score',
       'page arguments'   => array(4, 5),
       'type'             => MENU_NORMAL_ITEM,
-      'file'             => 'short_answer.admin.inc'
+      'file'             => 'quizz_text.admin.inc'
   );
 
   $items['admin/quiz/reports/score-long-answer'] = array(

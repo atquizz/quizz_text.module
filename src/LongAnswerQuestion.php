@@ -17,6 +17,9 @@ use Drupal\quizz_text\LongAnswerResponse;
  */
 class LongAnswerQuestion extends QuestionHandler {
 
+  protected $base_table = 'quizz_long_question';
+  protected $base_answer_table = 'quizz_long_answer';
+
   /**
    * {@inheritdoc}
    */
@@ -44,45 +47,7 @@ class LongAnswerQuestion extends QuestionHandler {
   }
 
   /**
-   * Implementation of validateNode
-   *
-   * @see QuizQuestion#validateNode($form)
-   */
-  public function validate(array &$form) {
-
-  }
-
-  /**
-   * Implementation of delete
-   *
-   * @see QuizQuestion#delete($only_this_version)
-   */
-  public function delete($only_this_version = FALSE) {
-    if ($only_this_version) {
-      db_delete('quizz_text_long_answer')
-        ->condition('question_qid', $this->question->qid)
-        ->condition('question_vid', $this->question->vid)
-        ->execute();
-      db_delete('quizz_long_question')
-        ->condition('qid', $this->question->qid)
-        ->condition('vid', $this->question->vid)
-        ->execute();
-    }
-    else {
-      db_delete('quizz_long_question')
-        ->condition('qid', $this->question->qid)
-        ->execute();
-      db_delete('quizz_text_long_answer')
-        ->condition('question_qid', $this->question->qid)
-        ->execute();
-    }
-    parent::delete($only_this_version);
-  }
-
-  /**
-   * Implementation of load
-   *
-   * @see QuizQuestion#load()
+   * {@inheritdoc}
    */
   public function load() {
     if (isset($this->properties)) {
@@ -104,6 +69,9 @@ class LongAnswerQuestion extends QuestionHandler {
     return $this->properties = $properties;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function view() {
     $content = parent::view();
 
@@ -130,9 +98,7 @@ class LongAnswerQuestion extends QuestionHandler {
   }
 
   /**
-   * Implementation of getAnweringForm
-   *
-   * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
+   * {@inheritdoc}
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = parent::getAnsweringForm($form_state, $result_id);
@@ -163,9 +129,7 @@ class LongAnswerQuestion extends QuestionHandler {
   }
 
   /**
-   * Implementation of getCreationForm
-   *
-   * @see QuizQuestion#getCreationForm($form_state)
+   * {@inheritdoc}
    */
   public function getCreationForm(array &$form_state = NULL) {
     $form['rubric'] = array(
@@ -181,9 +145,7 @@ class LongAnswerQuestion extends QuestionHandler {
   }
 
   /**
-   * Implementation of getMaximumScore
-   *
-   * @see QuizQuestion#getMaximumScore()
+   * {@inheritdoc}
    */
   public function getMaximumScore() {
     return $this->question->getQuestionType()->getConfig('long_answer_default_max_score', 10);

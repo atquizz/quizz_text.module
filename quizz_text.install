@@ -27,13 +27,10 @@ function quizz_text_schema() {
       'primary key' => array('qid', 'vid'),
   );
 
-  $schema['quizz_text_long_answer'] = array(
+  $schema['quizz_long_answer'] = array(
       'description' => 'User answers go in here.',
       'fields'      => array(
-          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
-          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
+          'answer_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
           'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
           'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE),
           'answer'                 => array('type' => 'text'),
@@ -41,9 +38,6 @@ function quizz_text_schema() {
           'answer_feedback_format' => array('type' => 'varchar', 'length' => 255),
       ),
       'primary key' => array('answer_id'),
-      'unique keys' => array(
-          'ids' => array('result_id', 'question_qid', 'question_vid'),
-      ),
   );
 
   $schema['quizz_short_question'] = array(
@@ -63,10 +57,7 @@ function quizz_text_schema() {
   $schema['quizz_short_answer'] = array(
       'description' => 'User answers go in here.',
       'fields'      => array(
-          'answer_id'              => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
-          'question_qid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-          'question_vid'           => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-          'result_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+          'answer_id'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
           'score'                  => array('type' => 'float', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
           'is_evaluated'           => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'default' => 0, 'not null' => TRUE, 'description' => 'This may be set to false if manual scoring is used.'),
           'answer'                 => array('type' => 'text'),
@@ -74,9 +65,6 @@ function quizz_text_schema() {
           'answer_feedback_format' => array('type' => 'varchar', 'length' => 255,),
       ),
       'primary key' => array('answer_id'),
-      'unique keys' => array(
-          'ids' => array('result_id', 'question_qid', 'question_vid'),
-      ),
   );
 
   return $schema;

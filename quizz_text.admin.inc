@@ -1,18 +1,7 @@
 <?php
 
 use Drupal\quizz_question\Entity\Question;
-use Drupal\quizz_text\LongAnswerResponse;
 use Drupal\quizz_text\ShortAnswerResponse;
-
-/**
- * Generate a view of all unscored answer questions.
- *
- * @see theme_quizz_text_long_answer_view_unscored()
- */
-function quizz_text_long_answer_view_unscored() {
-  $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
-  return theme('quizz_text_long_answer_view_unscored', array('unscored' => $unscored));
-}
 
 /**
  * Page handler for displaying a scoring form.
@@ -24,7 +13,10 @@ function quizz_text_long_answer_view_unscored() {
  * @return string
  */
 function quizz_text_long_answer_edit_score($question_vid, $result_id) {
-  if (!$question = quizz_question_load(NULL, $question_vid)) {
+  $question = quizz_question_load(NULL, $question_vid);
+  $result = quizz_result_load($result_id);
+  $answer = $result->loadAnswerByQuestion($question);
+  if (!$question || !$result || !$answer || (!$input = $answer->getInput())) {
     return drupal_not_found();
   }
 
@@ -32,17 +24,13 @@ function quizz_text_long_answer_edit_score($question_vid, $result_id) {
     throw new RuntimeException('Unexpected question type: ' . $question->getQuestionType()->handler);
   }
 
-  if (!$answer = (object) quizz_text_long_answer_get_answer($question->qid, $question->vid, $result_id)) {
-    return drupal_not_found();
-  }
-
-  $answer->rel_score = 0;
+  $input->rel_score = 0;
   if ($question->max_score > 0) {
-    $answer->rel_score = round($answer->score * $answer->rel_max_score / $question->max_score);
+    $input->rel_score = round($input->score * $input->rel_max_score / $question->max_score);
   }
 
   drupal_set_title(t('Score answer to "@title"', array('@title' => $question->title)), PASS_THROUGH);
-  return drupal_get_form('quizz_text_long_answer_score_form', $question, $answer);
+  return drupal_get_form('quizz_text_long_answer_score_form', $question, $input);
 }
 
 /**
@@ -59,6 +47,7 @@ function quizz_text_long_answer_score_form($form, $form_state, $question, $answe
     drupal_not_found();
     return;
   }
+
   // Set up the form
   $form['question'] = array(
       '#type'   => 'item',
@@ -167,16 +156,6 @@ function quizz_text_long_answer_score_form_submit($form, &$form_state) {
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
   }
-}
-
-/**
- * Generate a view of all unscored short_answer questions.
- *
- * @see theme_quizz_text_short_answer_view_unscored()
- */
-function quizz_text_short_answer_view_unscored() {
-  $unscored = ShortAnswerResponse::fetchAllUnscoredAnswers();
-  return theme('quizz_text_short_answer_view_unscored', array('unscored' => $unscored));
 }
 
 /**
@@ -321,4 +300,59 @@ function quizz_text_short_answer_score_form_submit($form, &$form_state) {
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
   }
+}
+
+/**
+ * Generate a view of all unscored answer questions.
+ * Callback for /admin/quiz/reports/score-long-answer.
+ */
+function quizz_text_long_answer_view_unscored() {
+  return theme('quizz_text_long_answer_view_unscored', array(
+      'unscored' => quiz_text_find_unscored_answers('quizz_text_long_answer')
+  ));
+}
+
+/**
+ * Generate a view of all unscored short_answer questions.
+ * Callback for /admin/quiz/reports/score-short-answer
+ */
+function quizz_text_short_answer_view_unscored() {
+  return theme('quizz_text_short_answer_view_unscored', array(
+      'unscored' => quiz_text_find_unscored_answers('quizz_text_short_answer')
+  ));
+}
+
+/**
+ * Get all scores that have not yet been evaluated.
+ *
+ * @param int $length Number of items to return (default: 50).
+ * @param int $offset
+ * @return object[]
+ */
+function quiz_text_find_unscored_answers($base_table) {
+  global $user;
+
+  $query = db_select($base_table, 'properties');
+  $query->innerJoin('quiz_answer_entity', 'answer', 'properties.answer_id = answer.id');
+  $query->innerJoin('quiz_results', 'result', 'answer.result_id = result.result_id');
+  $query->innerJoin('quiz_question_revision', 'question_revision', 'answer.question_vid = question_revision.vid');
+
+  $query
+    ->fields('properties', array('answer_feedback', 'answer_feedback_format'))
+    ->fields('answer', array('result_id', 'question_qid', 'question_vid'))
+    ->fields('question_revision', array('title'))
+    ->fields('result', array('time_end', 'time_start', 'uid'))
+    ->condition('answer.is_evaluated', 0);
+
+  // Access filter
+  user_access('score taken quiz answer') && $query->condition('result.uid', $user->uid);
+  if (user_access('score own quiz')) {
+    $query->innerJoin('quiz_entity', 'quiz', 'result.quiz_qid = quiz.qid');
+    $query->condition('quiz.uid', $user->uid);
+  }
+
+  foreach ($query->execute() as $row) {
+    $unscored[] = $row;
+  }
+  return !empty($unscored) ? $unscored : array();
 }
