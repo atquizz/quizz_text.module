@@ -64,7 +64,7 @@ function quizz_text_theme() {
  * Implements hook_menu().
  */
 function quizz_text_menu() {
-  $items['admin/quiz/reports/score-short-answer'] = array(
+  $items['admin/quizz/reports/score-short-answer'] = array(
       'title'            => 'Score short answer questions',
       'description'      => 'Score the answers from quizzes that use short answer questions.',
       'page callback'    => 'quizz_text_short_answer_view_unscored',
@@ -75,7 +75,7 @@ function quizz_text_menu() {
   );
 
   // Pass vid and rid to this path.
-  $items['admin/quiz/reports/score-short-answer/%/%'] = array(
+  $items['admin/quizz/reports/score-short-answer/%/%'] = array(
       'title'            => 'Score short answer response',
       'description'      => 'Score a response to a short answer question.',
       'access arguments' => array(4, 5),
@@ -86,7 +86,7 @@ function quizz_text_menu() {
       'file'             => 'quizz_text.admin.inc'
   );
 
-  $items['admin/quiz/reports/score-long-answer'] = array(
+  $items['admin/quizz/reports/score-long-answer'] = array(
       'title'            => 'Score long answer questions',
       'description'      => 'Score the answers from quizzes that use long answer questions.',
       'page callback'    => 'quizz_text_long_answer_view_unscored',
@@ -97,7 +97,7 @@ function quizz_text_menu() {
   );
 
   // Pass vid and rid to this path.
-  $items['admin/quiz/reports/score-long-answer/%/%'] = array(
+  $items['admin/quizz/reports/score-long-answer/%/%'] = array(
       'title'            => 'Score long answer response',
       'description'      => 'Score a response to a long answer question.',
       'access arguments' => array(4, 5),

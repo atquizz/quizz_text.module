@@ -151,7 +151,7 @@ function quizz_text_long_answer_score_form_submit($form, &$form_state) {
 
   if ($return == 1) {
     drupal_set_message(t('The score has been saved.'));
-    $form_state['redirect'] = 'admin/quiz/reports/score-long-answer';
+    $form_state['redirect'] = 'admin/quizz/reports/score-long-answer';
   }
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
@@ -295,7 +295,7 @@ function quizz_text_short_answer_score_form_submit($form, &$form_state) {
 
   if ($return == 1) {
     drupal_set_message("The score has been saved.");
-    $form_state['redirect'] = 'admin/quiz/reports/score-short-answer';
+    $form_state['redirect'] = 'admin/quizz/reports/score-short-answer';
   }
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
@@ -304,7 +304,7 @@ function quizz_text_short_answer_score_form_submit($form, &$form_state) {
 
 /**
  * Generate a view of all unscored answer questions.
- * Callback for /admin/quiz/reports/score-long-answer.
+ * Callback for /admin/quizz/reports/score-long-answer.
  */
 function quizz_text_long_answer_view_unscored() {
   return theme('quizz_text_long_answer_view_unscored', array(
@@ -314,7 +314,7 @@ function quizz_text_long_answer_view_unscored() {
 
 /**
  * Generate a view of all unscored short_answer questions.
- * Callback for /admin/quiz/reports/score-short-answer
+ * Callback for /admin/quizz/reports/score-short-answer
  */
 function quizz_text_short_answer_view_unscored() {
   return theme('quizz_text_short_answer_view_unscored', array(

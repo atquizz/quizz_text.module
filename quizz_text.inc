@@ -124,7 +124,7 @@ function quizz_text_long_answer_score_form_submit($form, &$form_state) {
 
   if ($return == 1) {
     drupal_set_message(t('The score has been saved.'));
-    $form_state['redirect'] = 'admin/quiz/reports/score-long-answer';
+    $form_state['redirect'] = 'admin/quizz/reports/score-long-answer';
   }
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
