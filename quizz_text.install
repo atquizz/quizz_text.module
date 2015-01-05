@@ -9,8 +9,8 @@
  * Implements hook_install().
  */
 function quizz_text_install() {
-  variable_set('node_options_long_answer', array('status'));
-  variable_set('node_options_short_answer', array('status'));
+  # variable_set('node_options_long_answer', array('status'));
+  # variable_set('node_options_short_answer', array('status'));
 }
 
 /**
