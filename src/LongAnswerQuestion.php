@@ -2,19 +2,10 @@
 
 namespace Drupal\quizz_text;
 
+use Drupal\quizz_question\Entity\QuestionType;
 use Drupal\quizz_question\QuestionHandler;
 use Drupal\quizz_text\LongAnswerResponse;
 
-/**
- * Long answer classes.
- *
- * @file
- *  Classes modelling the long answer question and the long answer question response
- */
-
-/**
- * Extension of QuizQuestion.
- */
 class LongAnswerQuestion extends QuestionHandler {
 
   protected $base_table = 'quizz_long_question';
@@ -149,6 +140,20 @@ class LongAnswerQuestion extends QuestionHandler {
    */
   public function getMaximumScore() {
     return $this->question->getQuestionType()->getConfig('long_answer_default_max_score', 10);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function questionTypeConfigForm(QuestionType $question_type) {
+    $form = array('#validate' => array('quizz_text_long_answer_config_validate'));
+    $form['long_answer_default_max_score'] = array(
+        '#type'          => 'textfield',
+        '#title'         => t('Default max score'),
+        '#description'   => t('Choose the default maximum score for a long answer question.'),
+        '#default_value' => $question_type->getConfig('long_answer_default_max_score', 10),
+    );
+    return $form;
   }
 
 }

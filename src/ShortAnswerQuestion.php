@@ -2,6 +2,7 @@
 
 namespace Drupal\quizz_text;
 
+use Drupal\quizz_question\Entity\QuestionType;
 use Drupal\quizz_question\QuestionHandler;
 use Drupal\quizz_text\ShortAnswerResponse;
 
@@ -247,6 +248,20 @@ class ShortAnswerQuestion extends QuestionHandler {
         break;
     }
     return $score;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function questionTypeConfigForm(QuestionType $question_type) {
+    $form['short_answer_default_max_score'] = array(
+        '#type'          => 'textfield',
+        '#title'         => t('Default max score'),
+        '#description'   => t('Choose the default maximum score for a short answer question.'),
+        '#default_value' => $question_type->getConfig('short_answer_default_max_score', 5),
+    );
+    $form['#validate'][] = 'quizz_text_short_answer_config_validate';
+    return $form;
   }
 
 }
