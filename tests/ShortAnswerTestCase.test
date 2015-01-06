@@ -32,10 +32,22 @@ class ShortAnswerTestCase extends QuizTestCase {
     ));
   }
 
+  public function testWrapper() {
+    $this->checkGradeAnswerInsensitive();
+    $this->checkGradeAnswerManualFeedback();
+    $this->checkGradeAnswerRegex();
+    $this->checkGradeAnswerSensitive();
+
+    // Just make sure there's no warnings
+    $this->drupalLogin($this->admin);
+    $this->drupalGet('admin/quizz/reports/score-short-answer');
+    $this->assertText('Score short answer questions');
+  }
+
   /**
    * Test case insensitive graded questions.
    */
-  public function testGradeAnswerInsensitive() {
+  private function checkGradeAnswerInsensitive() {
     $question = $this->createQuizQuestion(array(
         'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
         'correct_answer'            => 'the Zero One Infinity rule',
@@ -65,7 +77,7 @@ class ShortAnswerTestCase extends QuizTestCase {
   /**
    * Test case sensitive graded questions.
    */
-  public function testGradeAnswerSensitive() {
+  private function checkGradeAnswerSensitive() {
     $quiz = $this->drupalCreateQuiz(array(
         'review_options' => array('end' => array('score' => 'score')),
     ));
@@ -93,7 +105,7 @@ class ShortAnswerTestCase extends QuizTestCase {
   /**
    * Test regex graded questions.
    */
-  public function testGradeAnswerRegex() {
+  private function checkGradeAnswerRegex() {
     $quiz = $this->drupalCreateQuiz();
 
     $question = $this->createQuizQuestion(array(
@@ -120,7 +132,7 @@ class ShortAnswerTestCase extends QuizTestCase {
    * Note: we use two questions here to make sure the grading form is handled
    * correctly.
    */
-  public function testGradeAnswerManualFeedback() {
+  private function checkGradeAnswerManualFeedback() {
     $quiz = $this->drupalCreateQuiz();
 
     $question_1 = $this->createQuizQuestion(array(

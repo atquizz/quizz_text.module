@@ -308,7 +308,7 @@ function quizz_text_short_answer_score_form_submit($form, &$form_state) {
  */
 function quizz_text_long_answer_view_unscored() {
   return theme('quizz_text_long_answer_view_unscored', array(
-      'unscored' => quiz_text_find_unscored_answers('quizz_text_long_answer')
+      'unscored' => quiz_text_find_unscored_answers('quizz_long_answer')
   ));
 }
 
@@ -318,7 +318,7 @@ function quizz_text_long_answer_view_unscored() {
  */
 function quizz_text_short_answer_view_unscored() {
   return theme('quizz_text_short_answer_view_unscored', array(
-      'unscored' => quiz_text_find_unscored_answers('quizz_text_short_answer')
+      'unscored' => quiz_text_find_unscored_answers('quizz_short_answer')
   ));
 }
 
@@ -342,7 +342,7 @@ function quiz_text_find_unscored_answers($base_table) {
     ->fields('answer', array('result_id', 'question_qid', 'question_vid'))
     ->fields('question_revision', array('title'))
     ->fields('result', array('time_end', 'time_start', 'uid'))
-    ->condition('answer.is_evaluated', 0);
+    ->condition('properties.is_evaluated', 0);
 
   // Access filter
   user_access('score taken quiz answer') && $query->condition('result.uid', $user->uid);
