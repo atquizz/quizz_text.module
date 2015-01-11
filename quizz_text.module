@@ -2,7 +2,7 @@
 
 use Drupal\quizz\Entity\QuizEntity;
 use Drupal\quizz\Entity\Result;
-use Drupal\quizz_text\LongAnswerResponse;
+use Drupal\quizz_text\ShortAnswerResponse;
 
 require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
 
@@ -10,7 +10,7 @@ require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
  * Validate the long_answer config form values
  */
 function quizz_text_long_answer_config_validate($form, $form_state) {
-  if ($form_state['values']['long_answer_default_max_score'] <= 0) {
+  if ($form_state['values']['configuration']['long_answer_default_max_score'] <= 0) {
     form_set_error('long_answer_default_max_score', t('The default max score must be greater than 0'));
   }
 }
@@ -108,7 +108,7 @@ function quizz_text_long_answer_report_submit($values) {
  * Validate the long_answer config form values
  */
 function quizz_text_short_answer_config_validate($form, $form_state) {
-  if ($form_state['values']['short_answer_default_max_score'] <= 0) {
+  if ($form_state['values']['configuration']['short_answer_default_max_score'] <= 0) {
     form_set_error('short_answer_default_max_score', t('The default max score must be greater than 0'));
   }
 }
