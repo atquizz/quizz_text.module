@@ -11,6 +11,9 @@ class LongAnswerQuestion extends QuestionHandler {
   protected $base_table = 'quizz_long_question';
   protected $base_answer_table = 'quizz_long_answer';
 
+  /** @var int */
+  public $default_max_score = 10;
+
   /**
    * {@inheritdoc}
    */
@@ -138,22 +141,8 @@ class LongAnswerQuestion extends QuestionHandler {
   /**
    * {@inheritdoc}
    */
-  public function getMaximumScore() {
-    return $this->question->getQuestionType()->getConfig('long_answer_default_max_score', 10);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function questionTypeConfigForm(QuestionType $question_type) {
-    $form = array('#validate' => array('quizz_text_long_answer_config_validate'));
-    $form['long_answer_default_max_score'] = array(
-        '#type'          => 'textfield',
-        '#title'         => t('Default max score'),
-        '#description'   => t('Choose the default maximum score for a long answer question.'),
-        '#default_value' => $question_type->getConfig('long_answer_default_max_score', 10),
-    );
-    return $form;
+    return array('#validate' => array('quizz_text_long_answer_config_validate'));
   }
 
 }

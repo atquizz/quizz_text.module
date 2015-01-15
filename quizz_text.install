@@ -69,3 +69,30 @@ function quizz_text_schema() {
 
   return $schema;
 }
+
+/**
+ * Implements hook_update_N().
+ *
+ * Change key for config value.
+ */
+function quizz_text_update_7001() {
+  foreach (quizz_question_get_types() as $question_type) {
+    switch ($question_type->handler) {
+      case 'long_answer':
+        $key = 'long_answer_default_max_score';
+        break;
+      case 'short_answer':
+        $key = 'short_answer_default_max_score';
+        break;
+      default:
+        $key = NULL;
+        break;
+    }
+
+    $value = $question_type->getConfig($key, $question_type->default_max_score);
+    $question_type
+      ->setConfig('default_max_score', $value)
+      ->save()
+    ;
+  }
+}

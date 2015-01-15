@@ -7,15 +7,6 @@ use Drupal\quizz_text\ShortAnswerResponse;
 require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
 
 /**
- * Validate the long_answer config form values
- */
-function quizz_text_long_answer_config_validate($form, $form_state) {
-  if ($form_state['values']['configuration']['long_answer_default_max_score'] <= 0) {
-    form_set_error('long_answer_default_max_score', t('The default max score must be greater than 0'));
-  }
-}
-
-/**
  * Set a score for a long answer question.
  *
  * This stores a score for a long answer question and marks that question as
@@ -102,15 +93,6 @@ function quizz_text_long_answer_score_an_answer(Result $result, $values, $update
 function quizz_text_long_answer_report_submit($values) {
   $result = quizz_result_load($values['result_id']);
   quizz_text_long_answer_score_an_answer($result, $values, FALSE);
-}
-
-/**
- * Validate the long_answer config form values
- */
-function quizz_text_short_answer_config_validate($form, $form_state) {
-  if ($form_state['values']['configuration']['short_answer_default_max_score'] <= 0) {
-    form_set_error('short_answer_default_max_score', t('The default max score must be greater than 0'));
-  }
 }
 
 /**
