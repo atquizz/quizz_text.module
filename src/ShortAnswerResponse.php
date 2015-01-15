@@ -19,7 +19,7 @@ class ShortAnswerResponse extends TextResponse {
   protected $allow_feedback = TRUE;
 
   /** @var bool */
-  protected $manual_scoring = FALSE;
+  protected $manual_scoring = TRUE;
 
   public function __construct($result_id, Question $question, $input = NULL) {
     if ((NULL !== $input) && !is_array($input)) {
