@@ -2,6 +2,7 @@
 
 use Drupal\quizz\Entity\QuizEntity;
 use Drupal\quizz\Entity\Result;
+use Drupal\quizz_question\Entity\Question;
 use Drupal\quizz_text\ShortAnswerResponse;
 
 require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
@@ -27,61 +28,8 @@ require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
  */
 function quizz_text_long_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
   extract($values);
-
   $question = quizz_question_load(NULL, $vid);
-  $answer = $result->loadAnswerByQuestion($question);
-
-  // Quiz scoring information is spread out across three tables:
-  // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
-  // 2. The Quiz moduleretains a limited amount of scoring information.
-  // 3. The Quiz module retains an overall score for a quiz. This is the percentage score for the combination of all
-  //    questions on the quiz.
-  //
-  // We update all three.
-  // First, we update the long answer table
-  $question_max_score = db_query('SELECT max_score FROM {quiz_question_revision} WHERE qid = :qid AND vid = :vid', array(':qid' => $qid, ':vid' => $vid))->FetchField();
-  $quiz_max_score = db_query('SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND question_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
-
-  $changed = db_update('quizz_long_answer')
-    ->fields(array(
-        'score'                  => $score * $question_max_score / $quiz_max_score,
-        'is_evaluated'           => 1,
-        'answer_feedback'        => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
-        'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
-    ))
-    ->condition('answer_id', $answer->id)
-    ->execute();
-  if ($changed > 0) {
-    // Second, we update the main quiz answers table
-    // What do we do about the quiz_answer_entity table? It assumes strict
-    // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
-    $max = db_query('SELECT max_score FROM {quiz_question_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-    if ($max <= 0) {
-      $is_correct = 0;
-      $points_awarded = 0;
-    }
-    else {
-      $is_correct = $score == $max ? 1 : 0;
-      $points_awarded = $score;
-    }
-
-    // @TODO: Use entity API.
-    db_update('quiz_answer_entity')
-      ->fields(array(
-          'points_awarded' => $points_awarded,
-          'is_correct'     => $is_correct,
-      ))
-      ->condition('question_vid', $vid)
-      ->condition('result_id', $result->result_id)
-      ->execute();
-
-    // Third, we update the main quiz results table
-    if ($update_total) {
-      quizz_result_controller()->getScoreIO()->updateTotalScore($result);
-    }
-  }
-
-  return $changed;
+  return quizz_text_score_an_answer($result, $question, $answer_feedback, $score, $update_total);
 }
 
 /**
@@ -112,26 +60,36 @@ function quizz_text_long_answer_report_submit($values) {
  */
 function quizz_text_short_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
   extract($values);
-
   $question = quizz_question_load(NULL, $vid);
+  return quizz_text_score_an_answer($result, $question, $answer_feedback, $score, $update_total, 'quizz_short_answer');
+}
+
+/**
+ * Submit the result report for short answer.
+ *
+ * @see ShortAnswerResponse::getReportFormSubmit(),
+ */
+function quizz_text_short_answer_report_submit($values) {
+  $result = quizz_result_load($values['result_id']);
+  quizz_text_short_answer_score_an_answer($result, $values, FALSE);
+}
+
+function quizz_text_score_an_answer(Result $result, Question $question, $answer_feedback, $score, $update_total, $table = 'quizz_long_answer') {
+  $quiz = $result->getQuiz();
   $answer = $result->loadAnswerByQuestion($question);
 
   // When we set the score we make sure that the max score in the quiz the
   // question belongs to is considered
   $question_max_score = $question->max_score;
 
-  $quiz_max_score = db_query(
-    'SELECT max_score '
-    . ' FROM {quiz_relationship} '
-    . ' WHERE quiz_vid = :pvid AND question_vid = :cvid', array(
-      ':pvid' => $quiz->vid,
-      ':cvid' => $vid))->fetchField();
+  $quiz_sql = 'SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND question_vid = :cvid';
+  $quiz_max_score = db_query($quiz_sql, array(':pvid' => $quiz->vid, ':cvid' => $question->vid))->fetchField();
 
-  $changed = db_update('quizz_short_answer')
+  $changed = db_update($table)
     ->fields(array(
         'score'                  => $score * $question_max_score / $quiz_max_score,
         'is_evaluated'           => 1,
-        'answer_feedback'        => empty($answer_feedback['value']) ? '' : $answer_feedback['value'],
+        'answer_feedback'        => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
         'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
     ->condition('answer_id', $answer->id)
@@ -155,49 +113,4 @@ function quizz_text_short_answer_score_an_answer(Result $result, $values, $updat
   }
 
   return $changed;
-}
-
-/**
- * Submit the result report for short answer.
- *
- * @see ShortAnswerResponse::getReportFormSubmit(),
- */
-function quizz_text_short_answer_report_submit($values) {
-  $result = quizz_result_load($values['result_id']);
-  quizz_text_short_answer_score_an_answer($result, $values, FALSE);
-}
-
-/**
- * Get the answer for a question.
- *
- * This stores a score for a short answer question and marks that question as having been evaluated.
- * @param $question_qid
- *  Node ID of question.
- * @param $question_vid
- *  Version ID of question.
- * @param $result_id
- *  Result ID for the quiz results.
- *
- * @return Assoc array
- *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
- *  <code>
- *  answer_id; // The answer ID
- *  answer; // The full text of the answer
- *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
- *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
- *  question_vid
- *  question_qid
- *  result_id
- *  </code>
- */
-function quizz_text_short_answer_get_answer($question_qid, $question_vid, $result_id) {
-  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_qid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
-    FROM {quizz_short_answer} sa
-    JOIN {quiz_results} qnr ON (sa.result_id = qnr.result_id)
-    JOIN {quiz_relationship} rel ON (qnr.quiz_vid = rel.quiz_vid AND rel.question_vid = sa.question_vid)
-    WHERE sa.question_qid = :question_id AND sa.question_vid = :qvid AND sa.result_id = :rid', array(
-      ':question_id' => $question_qid,
-      ':qvid'        => $question_vid,
-      ':rid'         => $result_id))->fetchAssoc();
-  return $results ? $results : FALSE;
 }

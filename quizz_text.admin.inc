@@ -356,3 +356,38 @@ function quiz_text_find_unscored_answers($base_table) {
   }
   return !empty($unscored) ? $unscored : array();
 }
+
+/**
+ * Get the answer for a question.
+ *
+ * This stores a score for a short answer question and marks that question as having been evaluated.
+ * @param $question_qid
+ *  Node ID of question.
+ * @param $question_vid
+ *  Version ID of question.
+ * @param $result_id
+ *  Result ID for the quiz results.
+ *
+ * @return Assoc array
+ *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
+ *  <code>
+ *  answer_id; // The answer ID
+ *  answer; // The full text of the answer
+ *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
+ *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
+ *  question_vid
+ *  question_qid
+ *  result_id
+ *  </code>
+ */
+function quizz_text_short_answer_get_answer($question_qid, $question_vid, $result_id) {
+  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_qid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
+    FROM {quizz_short_answer} sa
+    JOIN {quiz_results} qnr ON (sa.result_id = qnr.result_id)
+    JOIN {quiz_relationship} rel ON (qnr.quiz_vid = rel.quiz_vid AND rel.question_vid = sa.question_vid)
+    WHERE sa.question_qid = :question_id AND sa.question_vid = :qvid AND sa.result_id = :rid', array(
+      ':question_id' => $question_qid,
+      ':qvid'        => $question_vid,
+      ':rid'         => $result_id))->fetchAssoc();
+  return $results ? $results : FALSE;
+}
