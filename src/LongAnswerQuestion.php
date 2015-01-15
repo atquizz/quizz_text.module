@@ -2,7 +2,6 @@
 
 namespace Drupal\quizz_text;
 
-use Drupal\quizz_question\Entity\QuestionType;
 use Drupal\quizz_question\QuestionHandler;
 use Drupal\quizz_text\LongAnswerResponse;
 
@@ -136,13 +135,6 @@ class LongAnswerQuestion extends QuestionHandler {
         '#required'      => FALSE,
     );
     return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function questionTypeConfigForm(QuestionType $question_type) {
-    return array('#validate' => array('quizz_text_long_answer_config_validate'));
   }
 
 }
