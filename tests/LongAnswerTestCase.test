@@ -32,15 +32,6 @@ class LongAnswerTestCase extends QuizTestCase {
         ) + $settings);
   }
 
-  public function testWrapper() {
-    $this->checkGradeAnswerManualFeedback();
-
-    // Just make sure there's no warnings
-    $this->drupalLogin($this->admin);
-    $this->drupalGet('admin/quizz/reports/score-long-answer');
-    $this->assertText('Score long answer questions');
-  }
-
   /**
    * Test manually graded questions. Also test feedback here instead of its own
    * test case.
@@ -48,7 +39,7 @@ class LongAnswerTestCase extends QuizTestCase {
    * Note: we use two questions here to make sure the grading form is handled
    * correctly.
    */
-  private function checkGradeAnswerManualFeedback() {
+  public function testGradeAnswerManualFeedback() {
     $question_1 = $this->createQuizQuestion();
     $question_2 = $this->createQuizQuestion();
     $quiz = $this->linkQuestionToQuiz($question_1);

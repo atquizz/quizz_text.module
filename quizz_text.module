@@ -1,116 +1,90 @@
 <?php
 
-use Drupal\quizz\Entity\QuizEntity;
-use Drupal\quizz\Entity\Result;
-use Drupal\quizz_question\Entity\Question;
-use Drupal\quizz_text\ShortAnswerResponse;
-
-require_once dirname(__FILE__) . '/quizz_text.hooks.inc';
+use Drupal\quizz_question\Entity\QuestionType;
 
 /**
- * Set a score for a long answer question.
- *
- * This stores a score for a long answer question and marks that question as
- * having been evaluated.
- *
- * The function updates all of the necessary data sources so that the individual
- * answer results should be reflected in the total scoring table.
- *
- * @param Result $result
- * @param QuizEntity $quiz
- * @param int $qid       ID of question.
- * @param int $vid       Version ID of question.
- * @param $score         The numeric score to assign the result.
- * @param $update_total  Shall the total score be updated?
- *
- * @return int
- *  Number of scores adjusted. If a change was made, this should be 1.
+ * Implements hook_permission().
  */
-function quizz_text_long_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
-  extract($values);
-  $question = quizz_question_load(NULL, $vid);
-  return quizz_text_score_an_answer($result, $question, $answer_feedback, $score, $update_total);
+function quizz_text_permission() {
+  return array(
+      'use regex for short answer' => array(
+          'title'           => t('use regex for short answer'),
+          'description'     => t('Use PHP "regular expressions" the advanced option for automated response evaluation.'),
+          'restrict access' => TRUE,
+      ),
+  );
 }
 
 /**
- * Submit function for the report form
- *
- * @param $values
- *   The FAPI $form_state['values']
+ * Implements hook_quizz_question_info().
  */
-function quizz_text_long_answer_report_submit($values) {
-  $result = quizz_result_load($values['result_id']);
-  quizz_text_long_answer_score_an_answer($result, $values, FALSE);
+function quizz_text_quizz_question_info() {
+  return array(
+      'short_answer' => array(
+          'name'              => t('Short answer question'),
+          'description'       => t('Quiz questions that allow a user to enter a line of text.'),
+          'question provider' => 'Drupal\quizz_text\ShortAnswerQuestion',
+          'response provider' => 'Drupal\quizz_text\ShortAnswerResponse',
+          'module'            => 'quizz_question', // All wrapper functions are in that module.
+      ),
+      'long_answer'  => array(
+          'name'              => t('Long answer question'),
+          'description'       => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
+          'question provider' => 'Drupal\quizz_text\LongAnswerQuestion',
+          'response provider' => 'Drupal\quizz_text\LongAnswerResponse',
+          'module'            => 'quizz_question', // All wrapper functions are in that module.
+      ),
+  );
 }
 
 /**
- * Set a score for a short answer question.
- *
- * This stores a score for a short answer question and marks that question as having been evaluated.
- * The function updates all of the necessary data sources so that the individual answer results should be
- * reflected in the total scoring table.
- *
- * @param Result $result
- * @param QuizEntity $quiz
- * @param int $qid      Question ID
- * @param int $vid      Question VID
- * @param $score        The numeric score to assign the result.
- * @param $update_total Shall the total score for a quiz be updated?
- * @return int          Number of scores adjusted. If a change was made, this should be 1.
+ * Implements hook_theme().
  */
-function quizz_text_short_answer_score_an_answer(Result $result, $values, $update_total = TRUE) {
-  extract($values);
-  $question = quizz_question_load(NULL, $vid);
-  return quizz_text_score_an_answer($result, $question, $answer_feedback, $score, $update_total, 'quizz_short_answer');
+function quizz_text_theme() {
+  return array(
+      'quizz_text_long_answer_view_unscored' => array(
+          'variables' => array('unscored' => array()),
+          'path'      => drupal_get_path('module', 'quizz_text') . '/theme',
+          'file'      => 'quizz_text.theme.inc',
+      ),
+      'quizz_text_long_answer_response_form' => array(
+          'render element' => 'form',
+          'path'           => drupal_get_path('module', 'quizz_text') . '/theme',
+          'file'           => 'quizz_text.theme.inc',
+      ),
+      'long_answer_answering_form'           => array(
+          'render element' => 'form',
+          'path'           => drupal_get_path('module', 'quizz_text') . '/theme',
+          'template'       => 'long-answer-answering-form',
+      ),
+  );
 }
 
 /**
- * Submit the result report for short answer.
- *
- * @see ShortAnswerResponse::getReportFormSubmit(),
+ * Implements hook_theme().
  */
-function quizz_text_short_answer_report_submit($values) {
-  $result = quizz_result_load($values['result_id']);
-  quizz_text_short_answer_score_an_answer($result, $values, FALSE);
-}
-
-function quizz_text_score_an_answer(Result $result, Question $question, $answer_feedback, $score, $update_total, $table = 'quizz_long_answer') {
-  $quiz = $result->getQuiz();
-  $answer = $result->loadAnswerByQuestion($question);
-
-  // When we set the score we make sure that the max score in the quiz the
-  // question belongs to is considered
-  $question_max_score = $question->max_score;
-
-  $quiz_sql = 'SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND question_vid = :cvid';
-  $quiz_max_score = db_query($quiz_sql, array(':pvid' => $quiz->vid, ':cvid' => $question->vid))->fetchField();
-
-  $changed = db_update($table)
-    ->fields(array(
-        'score'                  => $score * $question_max_score / $quiz_max_score,
-        'is_evaluated'           => 1,
-        'answer_feedback'        => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
-        'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
-    ))
-    ->condition('answer_id', $answer->id)
-    ->execute();
-
-  // Now the short answer user data has been updated. We also need to update the
-  // data in the quiz tables
-  if ($changed > 0) {
-    $is_correct = $points_awarded = 0;
-    if ($question_max_score > 0) {
-      $is_correct = ($score / $question_max_score > 0.5) ? 1 : 0;
-      $points_awarded = $score;
-    }
-
-    $answer->points_awarded = $points_awarded;
-    $answer->is_correct = $is_correct;
-    $answer->save();
-
-    // Third, we update the main quiz results table
-    $update_total && quizz_result_controller()->getScoreIO()->updateTotalScore($result);
-  }
-
-  return $changed;
+function quizz_text_short_answer_theme($existing, $type, $theme, $path) {
+  $module_path = drupal_get_path('module', 'quizz_text');
+  return array(
+      'quizz_text_short_answer_view_unscored' => array(
+          'variables' => array('unscored' => array()),
+          'path'      => $module_path . '/theme',
+          'file'      => 'quizz_text.theme.inc',
+      ),
+      'quizz_text_short_answer_response_form' => array(
+          'render element' => 'form',
+          'path'           => $module_path . '/theme',
+          'file'           => 'quizz_text.theme.inc',
+      ),
+      'quizz_text_short_answer_user_answer'   => array(
+          'variables' => array('answer' => NULL, 'correct' => NULL),
+          'path'      => $module_path . '/theme',
+          'file'      => 'quizz_text.theme.inc',
+      ),
+      'short_answer_answering_form'           => array(
+          'render element' => 'form',
+          'path'           => $module_path . '/theme',
+          'template'       => 'short-answer-answering-form',
+      ),
+  );
 }

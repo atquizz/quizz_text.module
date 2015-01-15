@@ -21,6 +21,9 @@ class LongAnswerResponse extends TextResponse {
   /** @var bool */
   protected $allow_feedback = TRUE;
 
+  /** @var bool */
+  protected $manual_scoring = TRUE;
+
   public function onLoad(Answer $answer) {
     // Question has been answered already. We fetch the answer data from db.
     $input = db_select($this->base_table, 'input')
@@ -52,13 +55,6 @@ class LongAnswerResponse extends TextResponse {
       return $input->score;
     }
     return 0;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getReportFormSubmit() {
-    return 'quizz_text_long_answer_report_submit';
   }
 
 }

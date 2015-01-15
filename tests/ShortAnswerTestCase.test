@@ -37,11 +37,6 @@ class ShortAnswerTestCase extends QuizTestCase {
     $this->checkGradeAnswerManualFeedback();
     $this->checkGradeAnswerRegex();
     $this->checkGradeAnswerSensitive();
-
-    // Just make sure there's no warnings
-    $this->drupalLogin($this->admin);
-    $this->drupalGet('admin/quizz/reports/score-short-answer');
-    $this->assertText('Score short answer questions');
   }
 
   /**
