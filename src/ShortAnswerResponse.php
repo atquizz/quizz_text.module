@@ -18,6 +18,9 @@ class ShortAnswerResponse extends TextResponse {
   /** @var bool */
   protected $allow_feedback = TRUE;
 
+  /** @var bool */
+  protected $manual_scoring = TRUE;
+
   public function __construct($result_id, Question $question, $input = NULL) {
     if ((NULL !== $input) && !is_array($input)) {
       $this->evaluated = $question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL;
@@ -61,13 +64,6 @@ class ShortAnswerResponse extends TextResponse {
 
     $handler = new ShortAnswerQuestion($this->question);
     return $handler->evaluateAnswer($this->getResponse());
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getReportFormSubmit() {
-    return 'quizz_text_short_answer_report_submit';
   }
 
 }

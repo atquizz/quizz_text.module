@@ -37,11 +37,6 @@ class ShortAnswerTestCase extends QuizTestCase {
     $this->checkGradeAnswerManualFeedback();
     $this->checkGradeAnswerRegex();
     $this->checkGradeAnswerSensitive();
-
-    // Just make sure there's no warnings
-    $this->drupalLogin($this->admin);
-    $this->drupalGet('admin/quizz/reports/score-short-answer');
-    $this->assertText('Score short answer questions');
   }
 
   /**
@@ -139,12 +134,13 @@ class ShortAnswerTestCase extends QuizTestCase {
         'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
         'correct_answer'            => 'the Zero One Infinity rule',
     ));
-    $this->linkQuestionToQuiz($question_1, $quiz);
 
     $question_2 = $this->createQuizQuestion(array(
         'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
         'correct_answer'            => 'The number two is ridiculous and cannot exist',
     ));
+
+    $this->linkQuestionToQuiz($question_1, $quiz);
     $this->linkQuestionToQuiz($question_2, $quiz);
 
     // Test correct.
@@ -153,8 +149,9 @@ class ShortAnswerTestCase extends QuizTestCase {
     $this->drupalPost(NULL, array("question[$question_1->qid][answer]" => 'the answer is the zero one infinity rule'), t('Next'));
     $this->drupalPost(NULL, array("question[$question_2->qid][answer]" => 'the number two really is ridiculous'), t('Finish'));
     $this->assertText('Your score: 0%');
+
     // Strange behavior - extra spaces in HTML.
-    //$this->assertText('Score ? of 10');
+    // $this->assertText('Score ? of 10');
     $this->assertText('This answer has not yet been scored.');
     $this->assertNoFieldByName('0[score]');
     $this->assertNoFieldByName('1[score]');
