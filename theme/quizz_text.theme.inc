@@ -21,8 +21,12 @@ function theme_quizz_text_long_answer_view_unscored($variables) {
       );
     }
   }
-  $output .=!empty($rows) ? theme('table', array('header' => $header, 'rows' => $rows)) : t('There are no unscored essays.');
-  return $output;
+
+  return $output .= theme('table', array(
+      'header' => $header,
+      'rows'   => $rows,
+      'empty'  => t('There are no unscored essays.'),
+  ));
 }
 
 /**
